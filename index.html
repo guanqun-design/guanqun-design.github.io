@@ -4,19 +4,1088 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>guanqun-design</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        h1,h2,h3,h4,h5,h6 {
+            font-weight: inherit;
+        }
+
+        .nav-group {
+            padding: 24px 20px 8px 20px;
+            display: block;
+        }
+
+        .nav-item {
+            padding: 4px 20px;
+            display: block;
+        }
+
+        .nav-link {
+            display: block;
+            color: #000000dd;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+
+        .nav-link:hover {
+            background: #00000022;
+        }
+
+    </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>ZhangGuanqun</h1>
-        </header>
-        <main>
-            <p>欢迎来到我的 GitHub Pages 网站</p>
-        </main>
-        <footer>
-            <p>&copy; 2025 My GitHub Pages</p>
-        </footer>
-    </div>
+
+<aside class="sidebar" id="sidebar" style="position: fixed; left: 0; top:0; bottom:0; width:380px; overflow-y: auto;"></aside>
+<main id="main-content" style="margin-left: 380px;"></main>
+
+<script>
+
+    let gap = 12;
+
+    let solve = function (A, y) {
+
+        const n = A.length;
+
+        // --- 1. 输入验证 ---
+        if (A[0].length !== n) {
+            throw new Error("系数矩阵 A 必须是方阵");
+        }
+        if (y.length !== n) {
+            throw new Error("向量 y 的维度必须与矩阵 A 的维度匹配");
+        }
+
+        // --- 2. 创建增广矩阵 [A|y] ---
+        // 使用深拷贝，避免修改原始输入
+        const aug = A.map((row, i) => [...row, y[i]]);
+
+        // --- 3. 高斯-若尔当消元 ---
+        for (let col = 0; col < n; col++) {
+            // --- 3.1 主元选择：找到当前列中绝对值最大的行，并交换到当前行 ---
+            let pivotRow = col;
+            for (let r = col + 1; r < n; r++) {
+                if (Math.abs(aug[r][col]) > Math.abs(aug[pivotRow][col])) {
+                    pivotRow = r;
+                }
+            }
+
+            // 如果主元为0，说明矩阵是奇异的，可能无解或有无穷解
+            if (Math.abs(aug[pivotRow][col]) < 1e-10) {
+                throw new Error("矩阵是奇异的，方程组可能无解或有无穷多解");
+            }
+
+            // 交换行
+            [aug[col], aug[pivotRow]] = [aug[pivotRow], aug[col]];
+
+            // --- 3.2 将主元所在行的主元元素归一化为 1 ---
+            const pivot = aug[col][col];
+            for (let c = col; c <= n; c++) {
+                aug[col][c] /= pivot;
+            }
+
+            // --- 3.3 消去当前列的其他所有元素 ---
+            for (let r = 0; r < n; r++) {
+                if (r !== col) {
+                    const factor = aug[r][col];
+                    for (let c = col; c <= n; c++) {
+                        aug[r][c] -= factor * aug[col][c];
+                    }
+                }
+            }
+        }
+
+        // --- 4. 提取解 ---
+        // 此时增广矩阵的右侧就是解向量 x
+        const x = aug.map(row => row[n]);
+        return x;
+    };
+
+    let createZeroVector = function(dim) {
+        return new Array(dim).fill(0);
+    }
+
+    let createZeroMatrix = function (dim) {
+        const matrix = [];
+        for (let i = 0; i < dim; i++) {
+            matrix.push(createZeroVector(dim));
+        }
+        return matrix;
+    };
+
+    let createImageColumnRow = function (rowImages) {
+        let a = createZeroMatrix(rowImages.length);
+        let y = createZeroVector(rowImages.length);
+        // 生成行宽条件
+        y[0] = mainContent.clientWidth - (rowImages.length + 1) * gap;
+        for (let i = 0; i < rowImages.length; i++) {
+            a[0][i] = 1;
+        }
+        // 生成列等高条件
+        let px0 = 0;
+        rowImages[0].forEach(image => {
+            px0 += image.height / image.width;
+        })
+        for (let i = 1; i < rowImages.length; i++) {
+            let pxi = 0;
+            rowImages[i].forEach(image => {
+                pxi += image.height / image.width;
+            })
+            a[i][0] = px0;
+            a[i][i] = -pxi;
+            y[i] = (rowImages[i].length - rowImages[0].length) * gap;
+        }
+        let x = solve(a, y);
+        let rowHTML = `<div style="width:${mainContent.clientWidth}px; display: flex; justify-content: space-evenly">`
+        for (let i = 0; i < rowImages.length; i++) {
+            rowHTML += `<div style="width:${x[i]}px; height:${x[0]*px0+(rowImages[0].length-1)*gap}px; display: flex; flex-direction: column; justify-content: space-between">`
+            rowImages[i].forEach(image => {
+                if (image.url != null) {
+                    rowHTML += `<img src=${image.url} style="width:${x[i]}px; height:${x[i] * image.height / image.width}px; border-radius:8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1)"">`;
+                }
+            })
+            rowHTML += `</div>`
+        }
+        rowHTML += `</div>`
+        rowHTML += `<div style="height:${gap}px"></div>`
+        return rowHTML;
+    };
+
+    let createImageRow = function(images){
+        let rowImages = [];
+        images.forEach(image => {
+            rowImages.push([image]);
+        })
+        return createImageColumnRow(rowImages);
+    }
+
+    let createSingleImageRow = function (image) {
+        return createImageColumnRow([[image]]);
+    };
+
+    let createPageTitle = function(text) {
+        return `<div style='height:15px'></div>` +
+            `<h1 style='padding-left:15px'>${text}</h1>` +
+            `<div style='height:15px'></div>`;
+    }
+
+    let createPageSubtitle = function(text) {
+        return `<div style='height:15px'></div>` +
+            `<h3 style='padding-left:15px'>${text}</h3>` +
+            `<div style='height:15px'></div>`;
+    }
+
+    let createParagraph = function (text) {
+        return `<h6 style="padding-left:15px; line-height: 1.8">${text}</h6><div style=\"height:15px\"></div>`;
+    };
+
+    // 概览页面
+    let createProductPage  = function() {
+        let innerHtml = createPageTitle("PRODUCT 产品设计");
+        innerHtml += createImageRow([
+            {url: "image/product/off-road-motorcycle.jpg", width: 1500, height: 950},
+            {url: "image/product/hover-camera.jpg", width: 1500, height: 1185}
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/product/e-bicycle.jpg", width: 1500, height: 1000},
+            {url: "image/product/e-moped.jpg", width: 900, height: 812},
+            {url: "image/product/censer.jpg", width: 800, height: 834}
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/product/sunny-cube.jpg", width: 1500, height: 843},
+            {url: "image/product/big-dog.jpg", width: 1500, height: 842}
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/product/exoskeleton-insole.jpg", width: 1500, height: 1078},
+            {url: "image/product/modular-router.jpg", width: 1500, height: 843},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/product/monmentum.jpg", width: 1500, height: 844},
+            {url: "image/product/mooa.jpg", width: 1500, height: 844},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/product/ophthalmological.jpg", width: 2000, height: 1030},
+            {url: "image/product/medical-product.jpg", width: 1500, height: 1061},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/product/cmf.png", width: 1341, height: 624},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/product/sterilizing-equipment.jpg", width: 1341, height: 1288},
+            {url: "image/product/ai.jpg", width: 1500, height: 904},
+        ]);
+        return innerHtml;
+    }
+
+    let createExhibitionPage = function() {
+        let innerHtml = createPageTitle("EXHIBITION 活动");
+        return innerHtml;
+    }
+
+    // 产品设计-详情页面
+    let createOffRoadMotorcyclePage = function() {
+        let p1 = "MOV off-road electric vehicles provide a brand new cycling experience that satisfies the commuting needs of congested cities and people's demand for outdoor exploration. It is a means of transportation with entertainment features. If you are getting into off-road riding, as a beginner, you can easily control the power of the MOV electric off-roader with just one hand. Its light body guarantees the safety of riders when operation error happens. Powered by renewable electricity, the MOV electric off-roader is friendlier to the environment for urban cycling transportation.";
+        let p2 = "The charging pile and battery replacement can help the motorcycle easily cope with various urban and off-road scenarios. You can start the journey with one button without the coordination of the gas clutch pedal. The motor drive also avoids the maintenance of traditional oil vehicles. The extremely light body with full power provides a higher level of drivability that even off-road beginners can quickly master. The driving range of the MOV electric off-roader can reach 80 kilometers, which can meet the demands for daily commuting and wild exploration. The ordinary gear and high-speed gear are set with the former suitable for urban cycling. With the high-speed gear, off-road enthusiasts can experience the pleasure brought by high-performance motors.";
+        let innerHtml = createPageTitle("Off Road Motorcycle 越野摩托");
+        innerHtml += createImageRow([
+            {url: "image/off-road-motorcycle/orm-1.jpg", width: 1939, height: 1288},
+        ]);
+        innerHtml += createParagraph(p1);
+        innerHtml += createParagraph(p2);
+        innerHtml += createImageRow([
+            {url: "image/off-road-motorcycle/orm-2.jpg", width: 1500, height: 994},
+            {url: "image/off-road-motorcycle/orm-3.jpg", width: 1496, height: 1288},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/off-road-motorcycle/orm-4.jpg", width: 1462, height: 1288},
+            {url: "image/off-road-motorcycle/orm-5.jpg", width: 1500, height: 995},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/product/off-road-motorcycle.jpg", width: 1500, height: 950},
+        ]);
+        return innerHtml;
+    }
+
+    let createHoverCameraPage = function() {
+        let p1 = "People enjoy sharing their daily life and having more interaction with others. What we wanted to provide was a new photo and video capturing experience for people. The product should be safe, portable and easy to use. And it should be able to capture photos and videos in various angles to grasp the most natural and precious moments of your life, just like your personal photographer. And that was our purpose and goal of designing HOVER CAMERA PASSPORT.";
+        let p2 = "One day back in 2014 when I chatted with our founder MQ, he said: \"Can you imagine there is such a thing that can totally ignore gravity, and once you let it go, it can just hover in the air,\" I thought that was just crazy but on the other hand also amazing if it can be achieved with design, science and technology.";
+        let p3 = "Particularly in flying camera / drone industry, we find that the biggest challenge is to harmonize aesthetic perception and product functionality. There are always trade-offs and decisions to make. Weight requirement for a flying device is critical. The less weight, the harder for product design since there is not too much material and weight we can manipulate. Also, in order to make the product safer and easier to use, our team insisted using fully protective enclosure design. However this feature brought a few challenges: it compromised the efficiency of the propulsion system and flight time of the device; it was difficult to manufacture those components in mass product; and last but not the least it was not a trivial design task to make it look nice. But in the end, we made it, and here it comes the Hover Camera Passport!";
+        let p4 = "That is not only a recognition but also great encouragement to me for my career as an industrial designer. After all, Hover Camera Passport is the first product design that I’ve done after my graduation. I hope to see that more designs which let the life become interesting and beautiful can be transformed into real products. When we want to design a product, firstly, we should consider how to achieve it rather than thinking about how difficult to achieve it.";
+        let innerHtml = createPageTitle("Drone  无人机");
+        innerHtml += createParagraph(p1);
+        innerHtml += createParagraph(p2);
+        innerHtml += createParagraph(p3);
+        innerHtml+=createImageRow([
+            {url: "image/hover-camera/hc1.jpg", width: 757, height: 1288},
+            {url: "image/hover-camera/hc2.jpg", width: 1335, height: 1288},
+        ]);
+        innerHtml+=createImageRow([
+            {url: "image/hover-camera/hc3.jpg", width: 1750, height: 1288},
+        ]);
+        innerHtml+=createImageRow([
+            {url: "image/hover-camera/hc4.jpg", width: 1850, height: 1288},
+        ]);
+        innerHtml+=createImageRow([
+            {url: "image/hover-camera/hc5.jpg", width: 2000, height: 1123},
+            {url: "image/hover-camera/hc6.jpg", width: 1000, height: 965},
+        ]);
+        innerHtml+=createImageRow([
+            {url: "image/hover-camera/hc7.jpg", width: 1850, height: 1288},
+        ]);
+        innerHtml += createParagraph(p4);
+        innerHtml+=createImageRow([
+            {url: "image/hover-camera/hc10.jpg", width: 1631, height: 1288},
+        ]);
+        return innerHtml;
+    }
+
+    let createEBicyclePage = function () {
+        let innerHtml = createPageTitle("E-Bike  新国标电动自行车");
+        innerHtml += createSingleImageRow({url: "image/e-bicycle/eb1.jpg", width: 960, height: 540});
+        innerHtml += createSingleImageRow({url: "image/e-bicycle/eb2.jpg", width: 960, height: 540});
+        innerHtml += createSingleImageRow({url: "image/e-bicycle/eb3.jpg", width: 960, height: 540});
+        innerHtml += createSingleImageRow({url: "image/e-bicycle/eb4.jpg", width: 960, height: 540});
+        innerHtml += createSingleImageRow({url: "image/e-bicycle/eb5.jpg", width: 960, height: 540});
+        innerHtml += createSingleImageRow({url: "image/e-bicycle/eb6.jpg", width: 960, height: 540});
+        innerHtml += createSingleImageRow({url: "image/e-bicycle/eb7.jpg", width: 960, height: 540});
+        innerHtml += createSingleImageRow({url: "image/e-bicycle/eb8.jpg", width: 960, height: 540});
+        innerHtml += createSingleImageRow({url: "image/e-bicycle/eb9.jpg", width: 960, height: 540});
+        innerHtml += createImageRow([
+            {url: "image/e-bicycle/eb10.jpg", width: 1356, height: 1288},
+            {url: "image/e-bicycle/eb11.jpg", width: 966, height: 1288},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/e-bicycle/eb12.jpg", width: 966, height: 1288},
+            {url: "image/e-bicycle/eb13.jpg", width: 1356, height: 1288},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/e-bicycle/eb14.jpg", width: 966, height: 1288},
+            {url: "image/e-bicycle/eb15.jpg", width: 966, height: 1288},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/e-bicycle/eb16.jpg", width: 900, height: 1200},
+            {url: "image/e-bicycle/eb17.jpg", width: 1932, height: 1288},
+        ]);
+        innerHtml += createSingleImageRow({url: "image/e-bicycle/eb18.jpg", width: 1932, height: 1288});
+        return innerHtml;
+    };
+
+    let createEMopedPage = function() {
+        let innerHtml = createPageTitle("E-MOPED  电动踏板");
+        innerHtml += createSingleImageRow({url: "image/e-moped/em1.jpg", width: 1428, height: 1288});
+        innerHtml+=createImageRow([
+            {url: "image/e-moped/em2.jpg", width: 900, height: 506},
+            {url: "image/e-moped/em3.jpg", width: 900, height: 506},
+            {url: "image/e-moped/em4.jpg", width: 900, height: 506},
+        ]);
+        innerHtml+=createImageRow([
+            {url: "image/e-moped/em5.jpg", width: 900, height: 506},
+            {url: "image/e-moped/em6.jpg", width: 900, height: 506},
+            {url: "image/e-moped/em7.jpg", width: 900, height: 506},
+        ]);
+        innerHtml+=createImageRow([
+            {url: "image/e-moped/em8.jpg", width: 900, height: 506},
+            {url: "image/e-moped/em9.jpg", width: 900, height: 506},
+            {url: "image/e-moped/em10.jpg", width: 900, height: 506},
+        ]);
+        innerHtml+=createImageRow([
+            {url: "image/e-moped/em11.jpg", width: 900, height: 506},
+            {url: "image/e-moped/em12.jpg", width: 900, height: 506},
+            {url: "image/e-moped/em13.jpg", width: 900, height: 506},
+        ]);
+        innerHtml+=createImageRow([
+            {url: "image/e-moped/em14.jpg", width: 900, height: 506},
+            {url: "image/e-moped/em15.jpg", width: 900, height: 506},
+            {url: "image/e-moped/em16.jpg", width: 900, height: 506},
+        ]);
+        innerHtml+=createImageRow([
+            {url: "image/e-moped/em17.jpg", width: 1272, height: 1288},
+        ]);
+        innerHtml+=createImageRow([
+            {url: "image/e-moped/em18.jpg", width: 859, height: 928},
+            {url: "image/e-moped/em19.jpg", width: 859, height: 1288},
+            {url: "image/e-moped/em20.jpg", width: 859, height: 1288},
+        ]);
+        innerHtml+=createImageRow([
+            {url: "image/e-moped/em21.jpg", width: 1428, height: 1288},
+            {url: "image/e-moped/em22.jpg", width: 859, height: 1288},
+        ]);
+        return innerHtml;
+    }
+
+    let createCenserPage = function() {
+        let p1 = "磁悬浮香炉，内部具有磁悬浮装置，托板上有吉凶区域，根据香灰落下的位置，可预测今日运势，为生活增加乐趣。";
+        let innerHtml = createPageTitle("Censer  转乾/转钱 香炉");
+        innerHtml += createParagraph(p1);
+        innerHtml += createImageColumnRow([
+            [
+                {url: "image/censer/c1.jpg", width: 1036, height: 1080},
+            ],
+            [
+                {url: "image/censer/c2.jpg", width: 900, height: 798},
+                {url: "image/censer/c3.jpg", width: 900, height: 506},
+                {url: "image/censer/c4.jpg", width: 900, height: 533},
+            ]
+        ])
+        innerHtml += createSingleImageRow({url: "image/censer/c5.jpg", width: 1920, height: 1080});
+        return innerHtml;
+    }
+
+    let createSunnyCubePage = function() {
+        let innerHtml = createPageTitle("SUNNY CUBE 光盒消毒");
+        innerHtml += createSingleImageRow({url: "image/sunny-cube/sc1.jpg", width: 1500, height: 843});
+        innerHtml += createSingleImageRow({url: "image/sunny-cube/sc2.jpg", width: 1500, height: 843});
+        innerHtml += createSingleImageRow({url: "image/sunny-cube/sc3.jpg", width: 1500, height: 843});
+        innerHtml += createSingleImageRow({url: "image/sunny-cube/sc4.jpg", width: 1500, height: 843});
+        innerHtml += createSingleImageRow({url: "image/sunny-cube/sc5.jpg", width: 1500, height: 843});
+        innerHtml += createSingleImageRow({url: "image/sunny-cube/sc6.jpg", width: 1500, height: 843});
+
+        innerHtml += createSingleImageRow({url: "image/sunny-cube/sc7.jpg", width: 1499, height: 843});
+
+        innerHtml += createSingleImageRow({url: "image/sunny-cube/sc8.jpg", width: 1410, height: 793});
+        innerHtml += createSingleImageRow({url: "image/sunny-cube/sc9.jpg", width: 1410, height: 793});
+        innerHtml += createSingleImageRow({url: "image/sunny-cube/sc10.jpg", width: 1410, height: 793});
+
+        innerHtml += createSingleImageRow({url: "image/sunny-cube/sc11.jpg", width: 1500, height: 843});
+        innerHtml += createSingleImageRow({url: "image/sunny-cube/sc12.jpg", width: 1500, height: 843});
+        innerHtml += createSingleImageRow({url: "image/sunny-cube/sc13.jpg", width: 1500, height: 843});
+        innerHtml += createSingleImageRow({url: "image/sunny-cube/sc14.jpg", width: 1500, height: 843});
+        innerHtml += createSingleImageRow({url: "image/sunny-cube/sc15.jpg", width: 1500, height: 843});
+
+        return innerHtml;
+    }
+
+    let createBigDogPage = function () {
+        let p1 = "BlG DOG电动车为人们提供科技感的外观与智能化骑行体验，以仿赛摩托车的速度搭配智能化操控体验，城市交通更为便利，在满足通勤需求的同时给予丰富娱乐性。采用新能源可再生电力驱动，体现资源循环，可持续发展理念，对城市自行车交通环境更友好。BlG DOG电动车电池组支持快充四小时可充电80%，工况下的续航能力在170km。中置风冷电机具备五个机械档位 配套有前倒立式减震器，后中央减震器，前后17寸铝合金轮毂，采用液晶仪表，全车LED灯源，智能中控系统，制动能量回收系统，前置摄像头，前后碟刹双通道ABS，半热熔轮胎，保证了优越的性能。无需驾驶员的配合电机免去了传统油车的维护，BlG DOG续航里程可达100公里，满足日常通勤和野外探险的需求，普通档位和高速档位设置，普通档适合城市骑行，高速档让越野爱好者体验高性能电机带来的乐趣。BlG DOG车头安有手机充电仓，保证随身通讯工具电量。车身侧边延伸为骑行者腿部提供舒适区域，防止长时间骑行对腿部造成疲劳。";
+        let innerHtml = createPageTitle("BIG DOG  电动跨骑");
+        innerHtml += createParagraph(p1);
+        innerHtml += createImageRow([
+            {url: "image/big-dog/bd1.jpg", width: 580, height: 1288},
+            {url: "image/big-dog/bd2.jpg", width: 2295, height: 1288},
+        ]);
+        innerHtml += createSingleImageRow({url: "image/big-dog/bd3.jpg", width: 2295, height: 1288})
+        innerHtml += createImageRow([
+            {url: "image/big-dog/bd4.jpg", width: 580, height: 1288},
+            {url: "image/big-dog/bd5.jpg", width: 580, height: 1288},
+            {url: "image/big-dog/bd6.jpg", width: 1913, height: 1288},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/big-dog/bd7.jpg", width: 700, height: 1244},
+            {url: "image/big-dog/bd8.jpg", width: 2295, height: 1288},
+        ]);
+        innerHtml += createSingleImageRow({url: "image/big-dog/bd9.jpg", width: 2295, height: 1288})
+        innerHtml += createSingleImageRow({url: "image/big-dog/bd10.jpg", width: 2295, height: 1288})
+        innerHtml += createSingleImageRow({url: "image/big-dog/bd11.jpg", width: 2295, height: 1288})
+        return innerHtml;
+    }
+
+    let createExoskeletonInsolePage = function() {
+        let p1 = "According to individual foot problems, the data are collected by foot pressure and edited by parametric algorithm to generate the exoskeleton insole with the corrective effect. Foot problems can lead to soreness and deformity of feet and long and short legs and other problems. According to each person's different foot problems, the data are collected by foot pressure instrument and edited by parametric algorithm to generate the exoskeleton insole with the corrective effect. For example, for flat feet, gait can be adjusted by adding support to the arch of the foot and adjusting the insole angle.";
+        let p2 = "The parametric algorithm takes healthy feet as the basic model to establish parametric data points, changes parameters according to different foot problems, and generates optimal results to solve different problems. The design inspiration of the algorithm comes from the lightweight skeleton of the bird. It uses a light weight and strong supporting force structure as an exoskeleton and establishes stress points and shock absorption areas according to the foot pressure characteristics to solve the biomechanics problems caused by excessive local pressure, uneven force and insufficient supporting force. Exoskeleton insole is composed of half cushion and full cushion, which is similar to the relationship between skeleton and muscle. The half cushion is made of hard material, which plays a supporting and adjusting role. The full cushion is made of soft material and is used with half cushion to reduce vibration and friction. For example, if the arch of the foot is too high, it is necessary to deepen the heel cup, increase the stability of the heel, and strengthen the shock absorption force of the foot.";
+        let p3 = "根据个人不同的脚部问题，通过脚部压力采集数据，将数据进行参数化算法编辑，生成有矫正作用的外骨骼鞋垫。脚部问题会导致脚酸痛，变形，长短腿等问题。根据每个人不同的脚部问题，通过脚部压力仪器采集数据，将数据进行参数化算法编辑，生成有矫正作用的外骨骼鞋垫。例如：扁平足，在足弓处增加支撑，并调整鞋垫角度，能够调整步态。参数化算法，以健康的脚作为基础模型，建立参数化数据点，根据不同的脚部问题改变参数，生成解决不同问题的最优结果。算法的设计灵感来自于飞鸟的轻质化骨骼，用重量轻且支撑力强的结构作一个外骨骼，根据脚部压力特征建立受力点和减震区域，解决因局部压力过大，受力不均，支撑力不足等导致的生物力学问题。外骨骼鞋垫由半垫加全垫的形式组成，类似于骨骼与肌肉的关系。半垫为硬质材质，起到支撑，调整的作用。全垫为软材质，配合半垫使用，起减震、减小摩擦的作用。例如：足弓过高，需要加深足跟杯，增加脚跟的稳定性，并加强脚部吸震力。";
+
+        let innerHtml = createPageTitle("Exoskeleton Insole 参数化鞋垫");
+        innerHtml += createParagraph(p1);
+        innerHtml += createParagraph(p2);
+        innerHtml += createParagraph(p3);
+        innerHtml+=createSingleImageRow({url: "image/exoskeleton-insole/ei1.jpg", width: 1793, height: 1288})
+        innerHtml+=createSingleImageRow({url: "image/exoskeleton-insole/ei2.jpg", width: 1793, height: 1288})
+        innerHtml+=createSingleImageRow({url: "image/exoskeleton-insole/ei3.jpg", width: 1793, height: 1288})
+        innerHtml+=createSingleImageRow({url: "image/exoskeleton-insole/ei4.jpg", width: 1793, height: 1288})
+        innerHtml+=createSingleImageRow({url: "image/exoskeleton-insole/ei5.jpg", width: 1793, height: 1288})
+
+        innerHtml+=createSingleImageRow({url: "image/exoskeleton-insole/ei6.jpg", width: 2297, height: 1288})
+        innerHtml+=createSingleImageRow({url: "image/exoskeleton-insole/ei7.jpg", width: 2297, height: 1288})
+
+        innerHtml+=createSingleImageRow({url: "image/exoskeleton-insole/ei8.jpg", width: 1793, height: 1288})
+
+        innerHtml+=createSingleImageRow({url: "image/exoskeleton-insole/ei9.jpg", width: 2297, height: 1288})
+
+        innerHtml+=createSingleImageRow({url: "image/exoskeleton-insole/ei10.jpg", width: 1793, height: 1288})
+        return innerHtml;
+    }
+
+    let createModularRouterPage = function() {
+        let innerHtml = createPageTitle("Router 路由器")
+        innerHtml+=createSingleImageRow({url: "image/modular-router/r1.jpg", width: 1500, height: 843})
+        innerHtml+=createSingleImageRow({url: "image/modular-router/r2.jpg", width: 1500, height: 843})
+        innerHtml+=createSingleImageRow({url: "image/modular-router/r3.jpg", width: 1500, height: 843})
+        innerHtml+=createSingleImageRow({url: "image/modular-router/r4.jpg", width: 1500, height: 843})
+
+        innerHtml+=createSingleImageRow({url: "image/modular-router/r5.jpg", width: 1410, height: 793})
+
+        innerHtml+=createSingleImageRow({url: "image/modular-router/r6.jpg", width: 1500, height: 843})
+
+        innerHtml+=createSingleImageRow({url: "image/modular-router/r7.jpg", width: 1410, height: 793})
+        innerHtml+=createSingleImageRow({url: "image/modular-router/r8.jpg", width: 1410, height: 793})
+        innerHtml+=createSingleImageRow({url: "image/modular-router/r9.jpg", width: 1410, height: 793})
+
+        innerHtml+=createImageRow([
+            {url: "image/modular-router/r10.jpg", width: 900, height: 506},
+            {url: "image/modular-router/r11.jpg", width: 900, height: 506},
+            {url: "image/modular-router/r12.jpg", width: 900, height: 506},
+        ])
+        innerHtml+=createImageRow([
+            {url: "image/modular-router/r13.jpg", width: 900, height: 506},
+            {url: "image/modular-router/r14.jpg", width: 900, height: 506},
+            {url: "image/modular-router/r15.jpg", width: 900, height: 506},
+        ])
+        return innerHtml;
+    }
+
+    let createMomentumPage = function() {
+        let innerHtml = createPageTitle("Momentum  莫曼顿");
+        innerHtml+=createSingleImageRow({url: "image/momentum/m1.jpg", width: 2290, height: 1288})
+        innerHtml += createImageRow([
+            {url: "image/momentum/m2.jpg", width: 1500, height: 1000},
+            {url: "image/momentum/m3.jpg", width: 1500, height: 1000}
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/momentum/m4.jpg", width: 1500, height: 1172},
+            {url: "image/momentum/m5.jpg", width: 1500, height: 1000}
+        ]);
+        return innerHtml;
+    }
+
+    let createMooaPage = function() {
+        let innerHtml = createPageTitle("MOOA 锅具设计");
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo1.jpg", width: 1920, height: 1080})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo2.jpg", width: 1920, height: 1080})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo3.jpg", width: 1920, height: 1080})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo4.jpg", width: 1920, height: 1080})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo5.jpg", width: 1920, height: 1080})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo6.jpg", width: 1920, height: 1080})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo7.jpg", width: 1920, height: 1080})
+
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo8.jpg", width: 2500, height: 1406})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo9.jpg", width: 2500, height: 1406})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo10.jpg", width: 2500, height: 1406})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo11.jpg", width: 2500, height: 1406})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo12.jpg", width: 2500, height: 1406})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo13.jpg", width: 2500, height: 1406})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo14.jpg", width: 2500, height: 1406})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo15.jpg", width: 2500, height: 1406})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo16.jpg", width: 2500, height: 1406})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo17.jpg", width: 2500, height: 1406})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo18.jpg", width: 2500, height: 1406})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo19.jpg", width: 2500, height: 1406})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo20.jpg", width: 2500, height: 1406})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo21.jpg", width: 2500, height: 1406})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo22.jpg", width: 2500, height: 1406})
+        innerHtml+=createSingleImageRow({url: "image/mooa/mo23.jpg", width: 2500, height: 1406})
+        return innerHtml;
+    }
+
+    let createOphthalmologicalPage = function () {
+        let p1 = "家用眼部护理（to C）";
+        let p2 = "to B";
+        let innerHtml = createPageTitle("Ophthalmological  眼科产品");
+        innerHtml += createParagraph(p1);
+        innerHtml += createSingleImageRow({url: "image/ophthalmological/o1.jpg", width: 1717, height: 1054})
+        innerHtml += createImageRow([
+            {url: "image/ophthalmological/o2.jpg", width: 1500, height: 921},
+            {url: "image/ophthalmological/o3.jpg", width: 1500, height: 921}
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/ophthalmological/o4.jpg", width: 1500, height: 921},
+            {url: "image/ophthalmological/o5.jpg", width: 1500, height: 921}
+        ]);
+        innerHtml += createParagraph(p2);
+        innerHtml += createImageColumnRow([
+            [
+                {url: "image/ophthalmological/o6.jpg", width: 900, height: 464},
+                {url: "image/ophthalmological/o7.jpg", width: 900, height: 464}
+            ],
+            [
+                {url: "image/ophthalmological/o8.jpg", width: 2000, height: 1030}
+            ]
+        ]);
+        innerHtml += createImageColumnRow([
+            [
+                {url: "image/ophthalmological/o9.jpg", width: 900, height: 464},
+                {url: "image/ophthalmological/o10.jpg", width: 900, height: 464}
+            ],
+            [
+                {url: "image/ophthalmological/o11.jpg", width: 2000, height: 1030}
+            ]
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/ophthalmological/o12.jpg", width: 900, height: 464},
+            {url: "image/ophthalmological/o13.jpg", width: 2000, height: 1030}
+        ]);
+        return innerHtml;
+    };
+
+    let createMedicalProductPage = function () {
+        let p1 = "医用药雾吸入产品，内部有两个顶针，胶囊放入后，同时按下左右键，刺破胶囊释放药雾粉末，吸入治疗。";
+        let innerHtml = createPageTitle("Medical Product  医用产品");
+        innerHtml += createParagraph(p1);
+        innerHtml += createSingleImageRow({url: "image/medical-product/mp1.jpg", width: 2500, height: 1767});
+        innerHtml += createImageRow([
+            {url: "image/medical-product/mp2.jpg", width: 1500, height: 1182},
+            {url: "image/medical-product/mp3.jpg", width: 1500, height: 1182},
+        ])
+        innerHtml += createImageRow([
+            {url: "image/medical-product/mp4.jpg", width: 1500, height: 1061},
+            {url: "image/medical-product/mp5.jpg", width: 1500, height: 1061},
+        ])
+        return innerHtml;
+    }
+
+    let createCmfPage = function () {
+        let p1 = "作为设计展现的一部分，每一个产品的CMF都需要经过反复设计测试，这里列举一种一个产品作为案例。";
+        let innerHtml = createPageTitle("CMF  颜色材料工艺");
+        innerHtml += createParagraph(p1);
+        innerHtml += createImageRow([
+            {url: "image/cmf/cm1.jpg", width: 595, height: 842},
+            {url: "image/cmf/cm2.jpg", width: 595, height: 842},
+            {url: "image/cmf/cm3.jpg", width: 595, height: 842},
+        ])
+        innerHtml += createImageRow([
+            {url: "image/cmf/cm4.jpg", width: 595, height: 842},
+            {url: "image/cmf/cm5.jpg", width: 595, height: 842},
+            {url: "image/cmf/cm6.jpg", width: 595, height: 842},
+        ])
+        innerHtml += createImageRow([
+            {url: "image/cmf/cm7.jpg", width: 595, height: 842},
+            {url: "image/cmf/cm8.jpg", width: 595, height: 842},
+            {url: "image/cmf/cm9.jpg", width: 595, height: 842},
+        ])
+        innerHtml += createImageRow([
+            {url: "image/cmf/cm10.jpg", width: 595, height: 842},
+            {url: "image/cmf/cm11.jpg", width: 595, height: 842},
+            {url: "image/cmf/cm12.jpg", width: 595, height: 842},
+            {url: "image/cmf/cm13.jpg", width: 595, height: 842},
+        ])
+        innerHtml += createImageRow([
+            {url: "image/cmf/cm14.jpg", width: 595, height: 842},
+            {url: "image/cmf/cm15.jpg", width: 595, height: 842},
+            {url: "image/cmf/cm16.jpg", width: 595, height: 842},
+            {url: "image/cmf/cm17.jpg", width: 595, height: 842},
+        ])
+        return innerHtml;
+    }
+
+    let createSterilizingEquipmentPage = function () {
+        let p1 = "疫情期间地铁消杀设备，带有两组机械臂，可消杀扶手，同时设备有打开式紫外线消毒灯，可消毒座椅等，底座为智能化轨迹托盘，可定时定路线进行消杀。";
+        let innerHtml = createPageTitle("Sterilizing Equipment 地铁消毒设备");
+        innerHtml += createParagraph(p1);
+        innerHtml += createImageRow([
+            {url: "image/sterilizing-equipment/se1.jpg", width: 900, height: 1051},
+            {url: "image/sterilizing-equipment/se2.jpg", width: 700, height: 672},
+            {url: "image/sterilizing-equipment/se3.jpg", width: 800, height: 768},
+        ])
+        innerHtml += createImageRow([
+            {url: "image/sterilizing-equipment/se4.jpg", width: 1341, height: 1288},
+            {url: "image/sterilizing-equipment/se5.jpg", width: 1341, height: 1288},
+        ])
+        innerHtml += createImageRow([
+            {url: "image/sterilizing-equipment/se6.jpg", width: 800, height: 768},
+            {url: "image/sterilizing-equipment/se7.jpg", width: 800, height: 768},
+            {url: "image/sterilizing-equipment/se8.jpg", width: 800, height: 768},
+        ])
+        innerHtml += createImageRow([
+            {url: "image/sterilizing-equipment/se9.jpg", width: 1500, height: 948},
+            {url: "image/sterilizing-equipment/se10.jpg", width: 1500, height: 843},
+        ])
+        innerHtml += createSingleImageRow({url: "image/sterilizing-equipment/se11.jpg", width: 2293, height: 1288})
+        innerHtml += createSingleImageRow({url: "image/sterilizing-equipment/se12.jpg", width: 2293, height: 1288})
+        return innerHtml;
+    };
+
+    let createAiPage = function () {
+        let innerHtml = createPageTitle("AI 生成（Midjouney  SD）");
+        innerHtml += createImageRow([
+            {url: "image/ai/ai1.jpg", width: 1500, height: 844},
+            {url: "image/ai/ai2.jpg", width: 1500, height: 1045},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/ai/ai3.jpg", width: 1500, height: 844},
+            {url: "image/ai/ai4.jpg", width: 1500, height: 1029},
+        ]);
+        innerHtml += createSingleImageRow({url: "image/ai/ai5.jpg", width: 2500, height: 1288});
+        innerHtml += createImageRow([
+            {url: "image/ai/ai6.jpg", width: 1500, height: 844},
+            {url: "image/ai/ai7.jpg", width: 1500, height: 844},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/ai/ai8.jpg", width: 1500, height: 844},
+            {url: "image/ai/ai9.jpg", width: 1500, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/ai/ai10.jpg", width: 1500, height: 842},
+            {url: "image/ai/ai11.jpg", width: 1500, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/ai/ai12.jpg", width: 1500, height: 733},
+            {url: "image/ai/ai13.jpg", width: 1500, height: 904},
+        ]);
+        return innerHtml;
+    }
+
+    // 活动-详情页面
+    let createGePage = function () {
+        let innerHtml = createPageTitle("Nam Facibu EsGE 通用电气医疗展");
+        innerHtml += createSingleImageRow({url: "image/ge/ge1.jpg", width: 2049, height: 1288});
+        innerHtml += createSingleImageRow({url: "image/ge/ge2.jpg", width: 2049, height: 1288});
+        innerHtml += createSingleImageRow({url: "image/ge/ge3.jpg", width: 2049, height: 1288});
+        innerHtml += createSingleImageRow({url: "image/ge/ge4.jpg", width: 2049, height: 1288});
+        innerHtml += createImageRow([
+            {url: "image/ge/ge5.jpg", width: 1500, height: 1188},
+            {url: "image/ge/ge6.jpg", width: 1286, height: 732}
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/ge/ge7.jpg", width: 1500, height: 810},
+            {url: "image/ge/ge8.jpg", width: 1500, height: 818}
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/ge/ge9.jpg", width: 800, height: 451},
+            {url: "image/ge/ge10.jpg", width: 1000, height: 456},
+            {url: "image/ge/ge11.jpg", width: 800, height: 450}
+        ]);
+        innerHtml += createSingleImageRow({url: "image/ge/ge12.jpg", width: 1189, height: 1288});
+        return innerHtml;
+    };
+
+    let createVehicleExhibitionPage = function () {
+        let innerHtml = createPageTitle("Vehicle Exhibition 车展");
+        innerHtml += createPageSubtitle("Mercedes-Benz");
+        innerHtml += createSingleImageRow({url: "image/vehicle-exhibition/ve1.jpg", width: 1500, height: 844});
+        innerHtml += createSingleImageRow({url: "image/vehicle-exhibition/ve2.jpg", width: 1500, height: 844});
+        innerHtml += createSingleImageRow({url: "image/vehicle-exhibition/ve3.jpg", width: 1500, height: 715});
+        innerHtml += createImageRow([
+            {url: "image/vehicle-exhibition/ve4.jpg", width: 1500, height: 843},
+            {url: "image/vehicle-exhibition/ve5.jpg", width: 1280, height: 720}
+        ])
+        innerHtml += createPageSubtitle("PHAETON");
+        innerHtml += createSingleImageRow({url: "image/vehicle-exhibition/ve6.jpg", width: 960, height: 720});
+        innerHtml += createSingleImageRow({url: "image/vehicle-exhibition/ve7.jpg", width: 960, height: 720});
+        innerHtml += createSingleImageRow({url: "image/vehicle-exhibition/ve8.jpg", width: 960, height: 720});
+        innerHtml += createSingleImageRow({url: "image/vehicle-exhibition/ve9.jpg", width: 960, height: 720});
+        innerHtml += createSingleImageRow({url: "image/vehicle-exhibition/ve10.jpg", width: 1500, height: 1061});
+        innerHtml += createPageSubtitle("CHANG AN");
+        innerHtml += createSingleImageRow({url: "image/vehicle-exhibition/ve11.jpg", width: 1500, height: 1061});
+        innerHtml += createImageRow([
+            {url: "image/vehicle-exhibition/ve12.jpg", width: 1268, height: 849},
+            {url: "image/vehicle-exhibition/ve13.jpg", width: 1268, height: 846}
+        ])
+        innerHtml += createImageRow([
+            {url: "image/vehicle-exhibition/ve14.jpg", width: 1268, height: 846},
+            {url: "image/vehicle-exhibition/ve15.jpg", width: 1268, height: 846}
+        ])
+        innerHtml += createPageSubtitle("SMART");
+        innerHtml += createSingleImageRow({url: "image/vehicle-exhibition/ve16.jpg", width: 1500, height: 1061});
+        return innerHtml;
+    };
+
+    let createHoverCameraExhibitionPage = function () {
+        let innerHtml = createPageTitle("HOVERCAMERA 展厅规划");
+        innerHtml += createImageRow([
+            {url: "image/hover-camera-exhibition/ho1.jpg", width: 842, height: 595},
+            {url: "image/hover-camera-exhibition/ho2.jpg", width: 842, height: 595}
+        ])
+        innerHtml += createImageRow([
+            {url: "image/hover-camera-exhibition/ho3.jpg", width: 842, height: 595},
+            {url: "image/hover-camera-exhibition/ho4.jpg", width: 842, height: 595}
+        ])
+        innerHtml += createImageRow([
+            {url: "image/hover-camera-exhibition/ho5.jpg", width: 842, height: 595},
+            {url: "image/hover-camera-exhibition/ho6.jpg", width: 842, height: 595}
+        ])
+        return innerHtml;
+    };
+
+    let createDragonToothPage = function () {
+        let p1 = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas in tortor risus. Praesent rhoncus neque a nulla volutpat, sit amet molestie nisi luctus. Vivamus sit amet pellentesque tortor. Maecenas quis egestas urna. Morbi volutpat risus in lacinia volutpat. Nulla placerat faucibus erat ac tempor. Praesent et urna at arcu viverra vulputate eget hendrerit odio.";
+        let innerHtml = createPageTitle("GRAGON TOOTH 龙牙店面展示设计");
+        innerHtml += createParagraph(p1);
+        innerHtml += createImageRow([
+            {url: "image/dragon-tooth/dt1.jpg", width: 1500, height: 844},
+            {url: "image/dragon-tooth/dt2.jpg", width: 1500, height: 844},
+        ]);
+        innerHtml += createSingleImageRow({url: "image/dragon-tooth/dt3.jpg", width: 2000, height: 1125});
+        innerHtml += createSingleImageRow({url: "image/dragon-tooth/dt4.jpg", width: 2000, height: 1125});
+        innerHtml += createSingleImageRow({url: "image/dragon-tooth/dt5.jpg", width: 2000, height: 1125});
+        innerHtml += createSingleImageRow({url: "image/dragon-tooth/dt6.jpg", width: 2000, height: 1125});
+        innerHtml += createSingleImageRow({url: "image/dragon-tooth/dt7.jpg", width: 2000, height: 1125});
+        innerHtml += createSingleImageRow({url: "image/dragon-tooth/dt8.jpg", width: 2000, height: 1125});
+        innerHtml += createSingleImageRow({url: "image/dragon-tooth/dt9.jpg", width: 2000, height: 1125});
+        innerHtml += createSingleImageRow({url: "image/dragon-tooth/dt10.jpg", width: 2000, height: 1125});
+        innerHtml += createImageRow([
+            {url: "image/dragon-tooth/dt11.jpg", width: 1500, height: 844},
+            {url: "image/dragon-tooth/dt12.jpg", width: 1500, height: 844},
+        ]);
+        innerHtml += createSingleImageRow({url: "image/dragon-tooth/dt13.jpg", width: 2000, height: 1125});
+        innerHtml += createSingleImageRow({url: "image/dragon-tooth/dt14.jpg", width: 2000, height: 1125});
+        return innerHtml;
+    }
+
+    let createConvivialitePage = function () {
+        let innerHtml = createPageTitle("Convivialite  比利时薯条活动");
+        innerHtml += createImageRow([
+            {url: "image/convivialite/co1.jpg", width: 1500, height: 999},
+            {url: "image/convivialite/co2.jpg", width: 1000, height: 745},
+            {url: "image/convivialite/co3.jpg", width: 600, height: 800},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/convivialite/co4.jpg", width: 900, height: 675},
+            {url: "image/convivialite/co5.jpg", width: 700, height: 621},
+            {url: "image/convivialite/co6.jpg", width: 1000, height: 666},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/convivialite/co7.jpg", width: 1500, height: 999},
+            {url: "image/convivialite/co8.jpg", width: 1500, height: 999},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/convivialite/co9.jpg", width: 1500, height: 999},
+            {url: "image/convivialite/co10.jpg", width: 1500, height: 999},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/convivialite/co11.jpg", width: 1500, height: 1125},
+            {url: "image/convivialite/co12.jpg", width: 1500, height: 1125},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/convivialite/co13.jpg", width: 800, height: 600},
+            {url: "image/convivialite/co14.jpg", width: 800, height: 600},
+            {url: "image/convivialite/co15.jpg", width: 900, height: 599},
+        ]);
+        return innerHtml;
+    };
+
+    let createLumierePage = function () {
+        let innerHtml = createPageTitle("Lumiere  学校公共灯光设计");
+        innerHtml += createImageRow([
+            {url: "image/lumiere/l1.jpg", width: 842, height: 595},
+            {url: "image/lumiere/l2.jpg", width: 842, height: 595}
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/lumiere/l3.jpg", width: 842, height: 595},
+            {url: "image/lumiere/l4.jpg", width: 842, height: 595}
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/lumiere/l5.jpg", width: 842, height: 595},
+            {url: "image/lumiere/l6.jpg", width: 842, height: 595}
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/lumiere/l7.jpg", width: 842, height: 595},
+            {url: "image/lumiere/l8.jpg", width: 842, height: 595}
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/lumiere/l9.jpg", width: 842, height: 595},
+            {url: "image/lumiere/l10.jpg", width: 842, height: 595}
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/lumiere/l11.jpg", width: 842, height: 595},
+            {url: "image/lumiere/l12.jpg", width: 842, height: 595}
+        ]);
+        return innerHtml;
+    }
+
+    let createFivesCailBabcockPage = function () {
+        let innerHtml = createPageTitle("Five Cail Babcock 里尔旧工厂改造");
+        innerHtml += createImageRow([
+            {url: "image/fives-cail-babcock/f1.jpg", width: 1191, height: 842},
+            {url: "image/fives-cail-babcock/f2.jpg", width: 1191, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/fives-cail-babcock/f3.jpg", width: 1191, height: 842},
+            {url: "image/fives-cail-babcock/f4.jpg", width: 1191, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/fives-cail-babcock/f5.jpg", width: 1191, height: 842},
+            {url: "image/fives-cail-babcock/f6.jpg", width: 1191, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/fives-cail-babcock/f7.jpg", width: 1191, height: 842},
+            {url: "image/fives-cail-babcock/f8.jpg", width: 1191, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/fives-cail-babcock/f9.jpg", width: 1191, height: 842},
+            {url: "image/fives-cail-babcock/f10.jpg", width: 1191, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/fives-cail-babcock/f11.jpg", width: 1191, height: 842},
+            {url: "image/fives-cail-babcock/f12.jpg", width: 1191, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/fives-cail-babcock/f13.jpg", width: 1191, height: 842},
+            {url: "image/fives-cail-babcock/f14.jpg", width: 1191, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/fives-cail-babcock/f15.jpg", width: 1191, height: 842},
+            {url: "image/fives-cail-babcock/f16.jpg", width: 1191, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/fives-cail-babcock/f17.jpg", width: 1191, height: 842},
+            {url: "image/fives-cail-babcock/f18.jpg", width: 1191, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/fives-cail-babcock/f19.jpg", width: 900, height: 636},
+            {url: "image/fives-cail-babcock/f20.jpg", width: 900, height: 636},
+            {url: "image/fives-cail-babcock/f21.jpg", width: 900, height: 636},
+        ]);
+        return innerHtml;
+    }
+
+    // 课题-详情页面
+    let createMemoirePage = function () {
+        let innerHtml = createPageTitle("Mémoire 论文");
+        innerHtml += createParagraph("《数学与艺术  参数化在设计中的应用》 节选");
+        innerHtml += createImageRow([
+            {url: "image/memoire/me1.jpg", width: 595, height: 842},
+            {url: "image/memoire/me2.jpg", width: 595, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/memoire/me3.jpg", width: 595, height: 842},
+            {url: "image/memoire/me4.jpg", width: 595, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/memoire/me5.jpg", width: 595, height: 842},
+            {url: "image/memoire/me6.jpg", width: 595, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/memoire/me7.jpg", width: 595, height: 842},
+            {url: "image/memoire/me8.jpg", width: 595, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/memoire/me9.jpg", width: 595, height: 842},
+            {url: "image/memoire/me10.jpg", width: 595, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/memoire/me11.jpg", width: 595, height: 842},
+            {url: "image/memoire/me12.jpg", width: 595, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/memoire/me13.jpg", width: 595, height: 842},
+            {url: "image/memoire/me14.jpg", width: 595, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/memoire/me15.jpg", width: 595, height: 842},
+            {url: "image/memoire/me16.jpg", width: 595, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/memoire/me17.jpg", width: 595, height: 842},
+            {url: "image/memoire/me18.jpg", width: 595, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/memoire/me19.jpg", width: 595, height: 842},
+            {url: "image/memoire/me20.jpg", width: 595, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/memoire/me21.jpg", width: 595, height: 842},
+            {url: "image/memoire/me22.jpg", width: 595, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/memoire/me23.jpg", width: 595, height: 842},
+            {url: "image/memoire/me24.jpg", width: 595, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/memoire/me25.jpg", width: 595, height: 842},
+            {url: "image/memoire/me26.jpg", width: 595, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/memoire/me27.jpg", width: 595, height: 842},
+            {url: "image/memoire/me28.jpg", width: 595, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/memoire/me29.jpg", width: 595, height: 842},
+            {url: "image/memoire/me30.jpg", width: 595, height: 842},
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/memoire/me31.jpg", width: 595, height: 842},
+            {url: null, width: 595, height: 842},
+        ]);
+        return innerHtml;
+    }
+
+    let createParametricDesignPage = function () {
+        let p1 = "Les deux premiers cours ont eu lieu au début de ma recherche, et ils m'ont donné quelques idées. Ce cours est d’ailleurs la première pratique de ma recherche. J’ai examiné l'application des conceptions réelles, focus sur la morphologie humaine. Recherche: la conception paramétrique est une méthode de conception très large gamme d'applications, d’architecture, design espace, de produits, etc. Pour sujet principal, j'ai choisi le médical (ou la médecine ?), je vais en faire la description détaillée après.";
+        let p2 = "Avant de présenter la troisième conception, je voudrais simplement expliquer ma recherche. Le design paramétrique est la pratique d'une méthode de travail basée sur la paramétrisation des éléments. Bien que la conception paramétrique et la conception précédente soient très différentes, on peut modifier leurs paramètres. Autrement dit, nous faisons évoluer les règles pour générer la forme, plutôt que les formes elles-mêmes. C'est un algorithme à programmer par logiciels grasshopper. En modifiant ces paramètres je peux générer des dizaines de milliers de formes différentes. Ainsi, en utilisant cet algorithme, des prototypes sont créés.";
+        let p3 = "ette exigence de cours est améliorée par des pièces vélo ou en ajoutant des pièces simples, de sorte que les vélos ont des fonctionnalités supplémentaires. A ce moment-là, j'ai déjà terminé cette algorithme, j'ai pensé alors, pourquoi ne pas l’utiliser pour réaliser la personnalisation d’une selle de vélo ? Chaque personne possède différents muscles et os, les hommes, les femmes, les personnes âgées, les enfants, les gros, les minces. Les exigences des selles sont différentes selon les paramètres de la morphologie de chacun pour générer un siège individuel approprié. Cette conception est utile. Les entreprises de bicyclettes pourraient créer un logiciel de génération en ligne sur lequel les gens entreraient les paramètres de leur taille, de leur poids et d’une variété de caractéristiques, en fonction desquels l'ordinateur générera automatiquement une certaine forme, puis l’imprimera via la 3D et réaliser leur propre selle.";
+        let p4 = "Le cours d’Imagination et d’objet non-standard, Ses mots clé sont l'impression 3D, les méthodes de traitement, les structures, la chaise Zig Zag. Certains disent que l'émergence de la technologie d'impression 3D aura un impact énorme sur la production industrielle, de la production à la personnalisation individuelle, en passant par la baisse des coûts de production. En raison de la complexité de la structure et l'aspect de la surface, un grand nombre de projets de conception paramétrique sont mis en œuvre par l'impression 3D.";
+        let p5 = "Imagination et objet non-standard: L'école dispose de deux imprimantes en 3D, qui peuvent imprimer les pièces simples jointes. Ce cours exigence est de changer la méthode de production de la chaise Zig Zag. On a tous entendu la méthode de fabrication de cette chaise, celle-ci est complexe. On doit réfléchir à la façon de connecter les quatre conseils généraux avec des pièces 3D imprimés simples. Je considère que, 1 Il doit être facile à assembler, sans utiliser de clous. 2. Je ne veux pas qu’il copie seulement la forme de la chaise, Il doit avoir également d'autres fonctionnalités, telles que le recours à la force agissant entre les uns et les autres, de sorte qu'il peut être légèrement secoué. 3. Imprimante 3D est l'empilement de ces couches qui crée un volume. Donc, je veux tenter de sauver le matériau et le temps d'impression. En vertu de cette idée, j'ai créé le premier prototype, il a posé beaucoup de difficultés. Ensuite, j’y apporte quelques d'améliorations, plus de formes symétriques, et utilise la forme ronde comme un élément de design. Dans les détails, au début de chaque section de plus 1 mm de diamètre convexe , ainsi, ils ne sont pas facilement séparables. Ajuster son épaisseur peut disperser son poids, mais aussi fait gagner du temps pour l'impression. Après l'achèvement de cette conception, je me suis demandé s’il était possible d'explorer une route de “paramètres de faible technologie” en engendrant la liaison du 《design high-tech》 et de la《construction low-tech》, tout en réalisant d'une manière simple la conception paramétrique. Dans le processus de la conception, de l'utilisation de la logique paramétrique et des outils de conception paramétrique, le travail de conception peut ensuite être effectué par l'équipe de construction générale avec les méthodes normales, ceci dans le but de s'assurer que la conception peut être réalisée.";
+        let innerHtml = createPageTitle("参数化设计相关（研究生阶段）RECHERCH");
+        innerHtml += createSingleImageRow({url: "image/parametric-design/pd1.jpg", width: 1074, height: 400});
+        innerHtml += createParagraph(p1);
+        innerHtml += createParagraph(p2);
+        innerHtml += createSingleImageRow({url: "image/parametric-design/pd2.jpg", width: 842, height: 279});
+        innerHtml += createSingleImageRow({url: "image/parametric-design/pd3.jpg", width: 595, height: 842});
+        innerHtml += createSingleImageRow({url: "image/parametric-design/pd4.jpg", width: 1288, height: 1852});
+        innerHtml += createImageRow([
+            {url: "image/parametric-design/pd5.jpg", width: 595, height: 842},
+            {url: "image/parametric-design/pd6.jpg", width: 595, height: 842},
+            {url: "image/parametric-design/pd7.jpg", width: 595, height: 842},
+        ]);
+        innerHtml += createSingleImageRow({url: "image/parametric-design/pd8.jpg", width: 595, height: 842});
+        innerHtml += createParagraph(p3);
+        innerHtml += createSingleImageRow({url: "image/parametric-design/pd9.jpg", width: 1288, height: 1845});
+        innerHtml += createSingleImageRow({url: "image/parametric-design/pd10.jpg", width: 1288, height: 1845});
+        innerHtml += createSingleImageRow({url: "image/parametric-design/pd11.jpg", width: 1288, height: 1845});
+        innerHtml += createParagraph(p4);
+        innerHtml += createParagraph(p5);
+        innerHtml += createSingleImageRow({url: "image/parametric-design/pd12.jpg", width: 1288, height: 1824});
+        innerHtml += createImageRow([
+            {url: "image/parametric-design/pd13.jpg", width: 1288, height: 1826},
+            {url: "image/parametric-design/pd14.jpg", width: 1288, height: 1826},
+        ]);
+        return innerHtml;
+    };
+
+    const product = [
+        ["Off Road Motorcycle", "越野摩托", createOffRoadMotorcyclePage],
+        ["HOVERCAMERA", "小黑侠无人机", createHoverCameraPage],
+        ["E-BICYCLE", "新国标电自", createEBicyclePage],
+        ["E-Moped", "电动踏板", createEMopedPage],
+        ["Censer", "转乾/转钱香炉", createCenserPage],
+        ["Sunny Cube", "光盒消毒", createSunnyCubePage],
+        ["BIG DOG", "电动跨骑摩托", createBigDogPage],
+        ["Exoskeleton Insole", "参数化鞋垫", createExoskeletonInsolePage],
+        ["Modular Router", "模块化路由器", createModularRouterPage],
+        ["Monmentum", "莫曼顿电轻摩", createMomentumPage],
+        ["MOOA", "锅具设计", createMooaPage],
+        ["Ophthalmological", "眼科产品", createOphthalmologicalPage],
+        ["Medical  Product", "医用产品", createMedicalProductPage],
+        ["CMF", "颜色材质工艺", createCmfPage],
+        ["Sterilizing Equipment", "消毒设备", createSterilizingEquipmentPage],
+        ["AI", "生成", createAiPage]
+    ];
+
+    const exhibition = [
+        ["GE", "通用电气医疗展", createGePage],
+        ["Vehicle Exhibition", "车展", createVehicleExhibitionPage],
+        ["HOVERCAMERA", "展厅规划", createHoverCameraExhibitionPage],
+        ["DRAGON TOOTH", "龙牙店面展示", createDragonToothPage],
+        ["Convivialité", "比利时薯条活动", createConvivialitePage],
+        ["Lumière", "学校公共灯光设计", createLumierePage],
+        ["Fives Cail Babcock", "里尔旧工厂改造", createFivesCailBabcockPage]
+    ];
+
+    const recherche = [
+        ["Mémoire", "论文", createMemoirePage],
+        ["Parametric Design", "参数化相关设计", createParametricDesignPage],
+        ["Bones E-MOTO", "鸟骨越野摩托"],
+        ["Exoskeleton  Insole", "参数化鞋垫"],
+        ["Arduino", "编程与设计实践"],
+        ["Pavillion Musical", "雨的奏鸣"]
+    ];
+
+    const all = [
+        ["PRODUCT", "产品设计", product, createProductPage],
+        ["EXHIBITION", "活动", exhibition, createExhibitionPage],
+        ["RECHERCHE", "课题", recherche],
+    ];
+
+    // 将产品概览页面设置为主页面
+    const mainContent = document.getElementById('main-content');
+    mainContent.innerHTML = createProductPage();
+
+    // 设置sidebar
+    let sidebar = "<div style='height: 10px'></div>" +
+        "<h2>ZHANG GUANQUN  张冠群</h2>" +
+        "<div style='height: 30px'></div>";
+    for (let gid = 0; gid < all.length; gid++) {
+        let group = all[gid];
+        let groupKeyEN = group[0];
+        let groupKeyCN = group[1];
+        let items = group[2];
+        sidebar += `<nav>`;
+        sidebar += `<div class="nav-group">
+                        <a href="#" class="nav-link" data-gid=${gid}>
+                            <div style="display: flex">
+                                <h1>${groupKeyEN}</h1>
+                                <h3 style="padding-left:10px; padding-top: 9px">${groupKeyCN}</h3>
+                            </div>
+                        </a>
+                    </div>`;
+        for (let i = 0; i < items.length; i++) {
+            let item = items[i];
+            let en = item[0];
+            let cn = item[1];
+            sidebar += `<div class=\"nav-item\">
+                            <a href="#" class="nav-link" data-gid=${gid} data-i=${i}>
+                                <h5>${en} ${cn}</h5>
+                            </a>
+                        </div>`;
+        }
+        sidebar += `</nav>`;
+    }
+    document.getElementById("sidebar").innerHTML = sidebar;
+
+    // 为每个导航链接添加点击事件
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            // 阻止默认跳转行为
+            e.preventDefault();
+            // 移除所有链接的active类
+            navLinks.forEach(l => l.classList.remove('active'));
+            // 为当前点击的链接添加active类
+            this.classList.add('active');
+            // 获取页面标识
+            const gid = this.dataset.gid;
+            let group = all[gid];
+            let items = group[2];
+            let createPage = group[3];
+            if (this.dataset.i) {
+                const i = this.dataset.i;
+                let item = items[i];
+                createPage = item[2];
+            }
+            mainContent.innerHTML = createPage()
+        });
+    });
+</script>
 </body>
 </html>
