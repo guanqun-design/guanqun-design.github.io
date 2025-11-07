@@ -20,7 +20,7 @@
             text-align: center;
         }
 
-        h1,h2,h3,h4,h5,h6 {
+        h1,h2,h3,h4,h5,h6,li {
             font-weight: inherit;
         }
 
@@ -233,6 +233,11 @@
         let innerHtml = createPageTitle("EXHIBITION 活动");
         return innerHtml;
     }
+
+    let createRecherchePage = function () {
+        let innerHtml = createPageTitle("RECHERCHE  课题");
+        return innerHtml;
+    };
 
     // 产品设计-详情页面
     let createOffRoadMotorcyclePage = function() {
@@ -749,7 +754,7 @@
 
     let createDragonToothPage = function () {
         let p1 = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Maecenas in tortor risus. Praesent rhoncus neque a nulla volutpat, sit amet molestie nisi luctus. Vivamus sit amet pellentesque tortor. Maecenas quis egestas urna. Morbi volutpat risus in lacinia volutpat. Nulla placerat faucibus erat ac tempor. Praesent et urna at arcu viverra vulputate eget hendrerit odio.";
-        let innerHtml = createPageTitle("DRAGON TOOTH 龙牙店面展示设计");
+        let innerHtml = createPageTitle("GRAGON TOOTH 龙牙店面展示设计");
         innerHtml += createParagraph(p1);
         innerHtml += createImageRow([
             {url: "image/dragon-tooth/dt1.jpg", width: 1500, height: 844},
@@ -983,6 +988,175 @@
         return innerHtml;
     };
 
+    let createBonesEMotoPage = function () {
+        let p1 = "Bionic is an electric off-roader designed to provide a simpler, safer, personalized and environmentally-friendly riding experience. The lightweight frame is designed based on the algorithm. The extremely light but powerful body provides freer off-road experiences and guarantees safety if operation mistakes happen. The new parametric design is different from the previous design approach. It embodies the ultra-light and strong characteristics of bird bones in bionics to write the algorithm together with aesthetic and ergonomic features to create a unique motorcycle design. The parametric design makes it possible for customization. In other words, the motorcycle can be manufactured in various forms within the same setup. For instance, different user groups can replace more suitable cushions by adjusting the parameters.";
+        let p2 = "The bones of birds inspire the ultimate lightness of the design. Those hollow, smooth and strong bones help their flight and allow them to consume less energy. According to features of the bird skeleton, force analysis and ergonomic data have been used to generate the algorithm. Aesthetically, the design also reflects the beauty of organic form and mechanics. At the same time, the emphasis is also given to minimizing the weight to guarantee stability when riding on rough roads, even with high jumps. The whole car is made of metal 3D printing and carbon fiber. The shape is not limited by the imagination of the engineer or the limitation of traditional manufacturing processes. New production techniques make new shapes possible and offer the possibility of customization.";
+        let innerHtml = createPageTitle("Bones E-MOTO 鸟骨越野摩托车");
+        innerHtml += createParagraph(p1);
+        innerHtml += createParagraph(p2);
+        innerHtml += createSingleImageRow({url: "image/bones-e-moto/b1.jpg", width: 922, height: 518});
+        innerHtml += createSingleImageRow({url: "image/bones-e-moto/b2.jpg", width: 922, height: 518});
+        innerHtml += createSingleImageRow({url: "image/bones-e-moto/b3.jpg", width: 922, height: 518});
+        innerHtml += createSingleImageRow({url: "image/bones-e-moto/b4.jpg", width: 922, height: 518});
+        innerHtml += createSingleImageRow({url: "image/bones-e-moto/b5.jpg", width: 922, height: 518});
+        innerHtml += createSingleImageRow({url: "image/bones-e-moto/b6.jpg", width: 922, height: 518});
+        innerHtml += createSingleImageRow({url: "image/bones-e-moto/b7.jpg", width: 922, height: 518});
+        innerHtml += createSingleImageRow({url: "image/bones-e-moto/b8.jpg", width: 922, height: 518});
+        innerHtml += createSingleImageRow({url: "image/bones-e-moto/b9.jpg", width: 922, height: 518});
+        innerHtml += createSingleImageRow({url: "image/bones-e-moto/b10.jpg", width: 922, height: 518});
+        innerHtml += createSingleImageRow({url: "image/bones-e-moto/b11.jpg", width: 922, height: 518});
+        innerHtml += createSingleImageRow({url: "image/bones-e-moto/b12.jpg", width: 922, height: 518});
+        innerHtml += createSingleImageRow({url: "image/bones-e-moto/b13.jpg", width: 922, height: 518});
+        innerHtml += createSingleImageRow({url: "image/bones-e-moto/b14.jpg", width: 922, height: 518});
+        return innerHtml;
+    };
+
+    let createArduinoPage = function () {
+        let p1 = "arduino是一个小型芯片，自学简单的编程就可以使用，这门选修课是使用arduino完成一个与常规相反的装置，比如照镜子，镜子像有情绪般的转开。 这里我使用了一个arduino芯片，一个感应器，一个马达实现了一个逆行为的手纸盒，当取拿纸时，马达旋转纸抽收回到盒子里，手拿走，马达转动纸复位，一个无用的盒子，像个调皮的玩笑。";
+        let p2 = "ce petit contrôleur permet aux personnes qui n’ont aucune connaissance de base de la science et de l'ingénierie de pouvoir créer une conception très intéressante. Donc même après la fin de ce workshop, je l'utilise encore comme un hobby personnel. Ses mots clé, son open source, sa programmation, son code, son hackerspace, fablab.";
+        let p3 = "Arduino est un circuit imprimé en matériel libre sur lequel se trouve un microcontrôleur qui peut être programmé pour analyser et produire des signaux électriques de manière à effectuer des tâches très diverses comme la domotique. Sa conception de type ouverte et sa facilité extrême d’utilisation font que même un enfant peut aussi l’utiliser. C'est une conception que j'ai créée au cours de workshop, le thème est uesless box, (Voir la vidéo) c'est-à-dire que nous tentons de trouver quelque chose ? contre le comportement de la personne. Ma conception est un peu espiègle. Dans des circonstances normales, le papier toilette est sorti, mais lorsque les gens veulent l'utiliser, le papier sera tiré en arrière, et quand la main sera loin, le papier sortira.";
+        let innerHtml = createPageTitle("Arduino 编程与设计实践");
+        innerHtml += createParagraph(p1);
+        innerHtml += createParagraph(p2);
+        innerHtml += createParagraph(p3);
+        innerHtml += createSingleImageRow({url: "image/arduino/a1.jpg", width: 1288, height: 1827});
+        innerHtml += createSingleImageRow({url: "image/arduino/a2.jpg", width: 1288, height: 1827});
+        innerHtml += createImageRow([
+            {url: "image/arduino/a3.jpg", width: 640, height: 480},
+            {url: "image/arduino/a4.jpg", width: 640, height: 480}
+        ]);
+        innerHtml += createImageRow([
+            {url: "image/arduino/a5.jpg", width: 640, height: 480},
+            {url: null, width: 640, height: 480}
+        ]);
+        return innerHtml;
+    };
+
+    let createPavillionMusicalPage = function () {
+        let p1 = "法国的东北部地区常年多雨，在公共设施上需要遮雨的小亭子，同时因为多雨的特质，我设计了一个音乐亭，在亭子上方有压力传感器，雨声敲打在不同的位置上会发出不同的音色，就像是雨的奏鸣。我使用了arduino制作了小模型，以参数化课题中的三角形作为基础图形，使用grasshopper生成亭子的表皮，在三角面上嵌入传感器，通过连接arduino，连接喇叭，就完成了等比例模型的设计。";
+        let p2 = "Dans le nord de la France, il pleut toujours, je me suis demandé comment utiliser cette caractéristique pour faire des choses amusantes. J'ai placé quelques capteurs au sommet du pavillon. Quand la pluie tombe sur le dessus il donne différents sons, c’est comme si la pluie jouait du piano. On peut ainsi écouter le rythme de la pluie.";
+        let innerHtml = createPageTitle("Pavillon Musical  雨的奏鸣");
+        innerHtml += createParagraph(p1);
+        innerHtml += createParagraph(p2);
+        innerHtml += createSingleImageRow({url: "image/arduino/a1.jpg", width: 1288, height: 1827});
+        innerHtml += createSingleImageRow({url: "image/arduino/a2.jpg", width: 1288, height: 1827});
+        innerHtml += createSingleImageRow({url: "image/arduino/a6.jpg", width: 1288, height: 1827});
+        return innerHtml;
+    }
+
+    let createInformationPage = function () {
+        let innerHtml = createPageTitle("ZHANG GUANQUN 张冠群");
+        let educationalBackgrounds = [
+            ["LuXun Academy of Fine Arts (鲁迅美术学院)", "Industrial Design"],
+            ["L’école Supérieure d’art et de design de Valenciennes (France)", "Master Design"]
+        ];
+        let awards = [
+            "BEST OF THE BEST REDDOT",
+            "IF AWARD",
+            "CES INNOVATION AWARD",
+            "DESIGN INTELLIGENCE  (GOLD) 中国设计智造金智奖",
+            "DAF AWARD BRONZE AWARD",
+            "K-DESIGN AWARD"
+        ];
+        let experiences1 = [
+            "RECHERCHE: LES MATHÉMATIQUES ET LA FORME, LES OUTILS PARAMÉTRIQUES DANS LE DESIGN (L’école Supérieure d’art et de design de Valenciennes, France) 2012-2014",
+            "WORKSHOP: SUR LA POUSSE (L’école Supérieure d’art et de design de Valenciennes, France) 2014",
+            "WORKSHOP: VERRE (L’école Supérieure d’art et de design de Valenciennes, France) 2013",
+            "WORKSHOP: Fives Cail Bakcock (L’école Supérieure d’art et de design de Valenciennes, France)2013",
+            "EXHIBITION: GE medical exhibition design (uniplan) 2014",
+            "EXHIBITION: Mercedes-Benz exhibition design (uniplan) 2014",
+            "SPACE: Chang’an vehicle museum design (uniplan) 2014",
+            "EXHIBITION: Volkswagen Phaeton exhibition design (uniplan) 2014",
+            "SPACE: Smart vehicle rental design (uniplan) 2014",
+            "BRAND DESIGN: Dental hospital VI design  2014",
+            "EXHIBITION: MAHA exhibition design (uniplan) 2014",
+            "EXHIBITION: LandRover Jaguar 4S store exhibition design (uniplan) 2014",
+            "EXHIBITION: VOLVO exhibition design (uniplan) 2014",
+            "EXHIBITION: WMF exhibition design (uniplan) 2014",
+            "LECTURER: guide students to apply to overseas art colleges (MAXSINE) 2014",
+            "PRODUCT: HOVERCAMERA  Design-Production-Sale (ZEROZERO Technology Co., Ltd.) 2014-2017",
+            "EXHIBITION: HOVERCAMERA exhibition design (ZEROZERO Technology Co., Ltd.) 2014-2017",
+            "PRODUCT: Mobile Phone Accessories Design (MOLINKS Technology Co., Ltd.) 2017",
+            "PRODUCT: UV Disinfection Products Design (MOLINKS Technology Co., Ltd.) 2018",
+            "PRODUCT: Censer Design (MOLINKS Technology Co., Ltd.) 2018"
+        ];
+        let experiences2 = [
+            "PRODUCT: Modular Router Design (MOLINKS Technology Co., Ltd.) 2018",
+            "PRODUCT: Off Road Motorcycle design (MOLINKS Technology Co., Ltd.) 2019",
+            "PRODUCT: E-Bicycle Design (MOLINKS Technology Co., Ltd.) 2019",
+            "PRODUCT: E-Moped (MOLINKS Technology Co., Ltd.) 2019",
+            "PRODUCT: MOOA Design (MOLINKS Technology Co., Ltd.) 2019",
+            "PRODUCT: OPHTHALMOLOGICAL  Design (MOLINKS Technology Co., Ltd.) 2020",
+            "PRODUCT: E-Scooter Design (MOLINKS Technology Co., Ltd.) 2021 not public yet",
+            "PRODUCT: Off Road Motorcycle Design (MOLINKS Technology Co., Ltd.) 2021 not public yet",
+            "PRODUCT: Exoskeleton Insole Design (MOLINKS Technology Co., Ltd.) 2020",
+            "PRODUCT: E-Scooter Design (MOLINKS Technology Co., Ltd.) 2021 not public yet",
+            "PRODUCT: Medical product (MOLINKS Technology Co., Ltd.) 2021",
+            "PRODUCT: Fire mask Design (MOLINKS Technology Co., Ltd.) 2021",
+            "BRAND DESIGN: MAYATOU Restaurant VI design  2022",
+            "PRODUCT: BlueShark E-Scooter Design (MOLINKS Technology Co., Ltd.) 2022",
+            "PRODUCT: Small four-wheel track vehicle (MOLINKS Technology Co., Ltd.) 2022",
+            "PRODUCT: Electric assist bicycles (MOLINKS Technology Co., Ltd.) 2022  not public yet",
+            "EVENT: Motorcycle promotional activities (MOLINKS Technology Co., Ltd.) 2022",
+            "PRODUCT: Reform of the bicycles (MOLINKS Technology Co., Ltd.) 2022",
+            "PRODUCT: Felt Goods design (MOLINKS Technology Co., Ltd.) 2022",
+            "PRODUCT: BIG DOG MOTORCYCLE (MOLINKS Technology Co., Ltd.) 2022",
+            "PRODUCT: Straddle type motorcycle(MOLINKS Technology Co., Ltd.) 2022 not public yet",
+            "PRODUCT: Helmet Design (MOLINKS Technology Co., Ltd.) 2023",
+            "EXHIBITION: Dragon Tooth exhibition design  2023",
+            "PRODUCT: 350ADV Design (MOLINKS Technology Co., Ltd.) 2023 not public yet",
+            "PRODUCT: Straddle type motorcycle Design for Africa (MOLINKS Technology Co., Ltd.) 2023",
+            "PRODUCT: Folding Bicycle (MOLINKS Technology Co., Ltd.) 2024 not public yet",
+            "PRODUCT: New National standard E - Bicycle (MOLINKS Technology Co., Ltd.) 2024",
+            "LECTURER: Central Academy of Fine Arts International College"
+        ];
+        let width = mainContent.clientWidth;
+        innerHtml += `<div style="display: flex; flex-direction: row; justify-content: space-evenly;">`
+        // left page
+        innerHtml += `<div style="width: ${width / 2 - 30}px;">`;
+        innerHtml += `<div style="height: 30px"></div>` +
+            `<table style='padding-left:15px'><tbody>` +
+            `<tr><td style='padding-right: 30px;'>LuXun Academy of Fine Arts (鲁迅美术学院)</td><td>Industrial Design</td></tr>` +
+            `<tr><td style='padding-right: 30px;'>L’école Supérieure d’art et de design de Valenciennes (France)</td><td>Master Design</td></tr>` +
+            `</tbody></table>`;
+
+        innerHtml += `<div style='height:15px'></div>` +
+            `<h3 style='padding-left:15px; font-weight: bolder;'>AWARD</h3>` +
+            `<div style='height:15px'></div>`;
+        innerHtml += `<ul style='padding-left:40px'>`
+        for (let i = 0; i < awards.length; i++) {
+            innerHtml += `<li>${awards[i]}</li>`;
+        }
+        innerHtml += `</ul>`
+
+        innerHtml += `<div style='height:15px'></div>` +
+            `<h3 style='padding-left:15px; font-weight: bolder;'>EXPERIENCE</h3>` +
+            `<div style='height:15px'></div>`;
+        innerHtml += `<ul style='padding-left:40px'>`
+        for (let i = 0; i < experiences1.length; i++) {
+            innerHtml += `<li><h5>${experiences1[i]}</h5></li>`;
+        }
+        innerHtml += `</ul>`
+        innerHtml += `</div>`;
+
+        // right page
+        innerHtml += `<div style="width: ${width / 2 - 30}px;">`;
+        innerHtml += `<ul style='padding-left:40px'>`
+        for (let i = 0; i < experiences2.length; i++) {
+            innerHtml += `<li><h5>${experiences2[i]}</h5></li>`;
+        }
+        innerHtml += `</ul>`
+        innerHtml += `</div>`;
+        // end
+        innerHtml += `</div>`;
+        return innerHtml;
+    };
+
+    let createEmailPage = function () {
+        let innerHtml = createPageTitle("ZHANG GUANQUN 张冠群");
+        return innerHtml;
+    };
+
     const product = [
         ["Off Road Motorcycle", "越野摩托", createOffRoadMotorcyclePage],
         ["HOVERCAMERA", "小黑侠无人机", createHoverCameraPage],
@@ -1015,17 +1189,21 @@
     const recherche = [
         ["Mémoire", "论文", createMemoirePage],
         ["Parametric Design", "参数化相关设计", createParametricDesignPage],
-        ["Bones E-MOTO", "鸟骨越野摩托"],
-        ["Exoskeleton  Insole", "参数化鞋垫"],
-        ["Arduino", "编程与设计实践"],
-        ["Pavillion Musical", "雨的奏鸣"]
+        ["Bones E-MOTO", "鸟骨越野摩托", createBonesEMotoPage],
+        ["Exoskeleton  Insole", "参数化鞋垫", createExoskeletonInsolePage],
+        ["Arduino", "编程与设计实践", createArduinoPage],
+        ["Pavillion Musical", "雨的奏鸣", createPavillionMusicalPage]
     ];
 
     const all = [
         ["PRODUCT", "产品设计", product, createProductPage],
         ["EXHIBITION", "活动", exhibition, createExhibitionPage],
-        ["RECHERCHE", "课题", recherche],
+        ["RECHERCHE", "课题", recherche, createRecherchePage],
     ];
+
+    let setPage = function (page) {
+        mainContent.innerHTML = page();
+    }
 
     // 将产品概览页面设置为主页面
     const mainContent = document.getElementById('main-content');
@@ -1061,6 +1239,18 @@
         }
         sidebar += `</nav>`;
     }
+    sidebar += `<div style="height: 30px"></div>`;
+    sidebar += `<div class=\"nav-item\">
+                    <a href="#" class="nav-link" onclick="setPage(createInformationPage)">
+                        <h3>Information</h3>
+                    </a>
+                </div>`;
+    sidebar += `<div class=\"nav-item\">
+                    <a href="#" class="nav-link" onclick="setPage(createEmailPage)">
+                        <h3>Email</h3>
+                    </a>
+                </div>`;
+    sidebar += `<div style="height: 30px"></div>`;
     document.getElementById("sidebar").innerHTML = sidebar;
 
     // 为每个导航链接添加点击事件
