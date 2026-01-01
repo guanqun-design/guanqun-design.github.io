@@ -17,9 +17,9 @@
     const mainContent = document.getElementById('main-content');
     let app = [
         [title], "ZHANG GUANQUN  张冠群",
-        [items, 1],
+        [items, {num:1, isTitle: true}],
         ["PRODUCT 产品设计", titlePages.productPage],
-        [items, 16],
+        [items, {num: 16}],
         ["Off Road Motorcycle 越野摩托", productPages.offRoadMotorcyclePage],
         ["HOVERCAMERA 小黑侠无人机", productPages.hoverCameraPage],
         ["E-BICYCLE 新国标电自", productPages.eBicyclePage],
@@ -36,9 +36,9 @@
         ["CMF 颜色材质工艺", productPages.cmfPage],
         ["Sterilizing Equipment 消毒设备", productPages.sterilizingEquipmentPage],
         ["AI 生成", productPages.aiPage],
-        [items, 1],
+        [items, {num:1, isTitle: true}],
         ["EXHIBITION 活动", titlePages.exhibitionPage],
-        [items, 7],
+        [items, {num: 7}],
         ["GE 通用电气医疗展", exhibitionPages.gePage],
         ["Vehicle Exhibition 车展", exhibitionPages.vehicleExhibitionPage],
         ["HOVERCAMERA 展厅规划", exhibitionPages.hoverCameraExhibitionPage],
@@ -46,9 +46,9 @@
         ["Convivialité 比利时薯条活动", exhibitionPages.convivialitePage],
         ["Lumière 学校公共灯光设计", exhibitionPages.lumierePage],
         ["Fives Cail Babcock 里尔旧工厂改造", exhibitionPages.fivesCailBabcockPage],
-        [items, 1],
+        [items, {num:1, isTitle: true}],
         ["RECHERCHE 课题", titlePages.recherchePage],
-        [items, 6],
+        [items, {num: 6}],
         ["Mémoire 论文", recherchePages.memoirePage],
         ["Parametric Design 参数化相关设计", recherchePages.parametricDesignPage],
         ["Bones E-MOTO 鸟骨越野摩托", recherchePages.bonesEMotoPage],
@@ -56,7 +56,13 @@
         ["Arduino 编程与设计实践", recherchePages.arduinoPage],
         ["Pavillion Musical 雨的奏鸣", recherchePages.pavillionMusicalPage]
     ];
-    mainContent.appendChild(createLeftNavigateApp(document, mainContent.clientWidth, mainContent.clientHeight, 400, app));
+    mainContent.appendChild(createLeftNavigateApp({
+        document: document,
+        width: mainContent.clientWidth,
+        height: mainContent.clientHeight,
+        sidebarWidth: 400,
+        flatten: app
+    }));
 </script>
 </body>
 </html>

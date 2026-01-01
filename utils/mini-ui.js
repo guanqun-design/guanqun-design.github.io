@@ -139,7 +139,13 @@ function createPage(document, width, isNarrow, onReturn, flatten) {
     return container;
 }
 
-function createLeftNavigateApp(document, width, height, sidebarWidth, flatten) {
+function createLeftNavigateApp({
+                                   document: document,
+                                   width: width,
+                                   height: height,
+                                   sidebarWidth: sidebarWidth,
+                                   flatten: flatten
+                               }) {
 
     const isNarrow = width < 1000;
 
@@ -161,6 +167,7 @@ function createLeftNavigateApp(document, width, height, sidebarWidth, flatten) {
 
     let pageId = 0;
     let pages = [];
+
     function setPage() {
         if (pageId === -1) {
             page.replaceChildren(sidebar);
@@ -180,7 +187,20 @@ function createLeftNavigateApp(document, width, height, sidebarWidth, flatten) {
             title.style.color = '#000000d9';
             return title;
         },
-        [ui.items]: ([_, n]) => {
+        [ui.items]: ([_, {num: n, isTitle: isTitle}]) => {
+            if (isTitle) {
+                const [text, _page] = iter.next().value;
+                const _pageId = pageId++;
+                pages.push(_page);
+                const h = document.createElement('h4');
+                h.style.paddingLeft = '10px';
+                h.innerText = text;
+                h.addEventListener('click', () => {
+                    pageId = _pageId;
+                    setPage();
+                })
+                return h;
+            }
             const ul = document.createElement('ul');
             for (let i = 0; i < n; i++) {
                 const li = document.createElement('li');
