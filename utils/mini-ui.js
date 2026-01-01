@@ -58,9 +58,15 @@ function createSpace(document, space) {
     return container;
 }
 
-function createPage(document, width, flatten) {
+function createPage(document, width, isNarrow, onReturn, flatten) {
     const container = document.createElement('div');
     container.style.width = width + "px";
+    if (isNarrow) {
+        const button = document.createElement('button');
+        button.innerText = "返回目录";
+        button.onclick = onReturn;
+        container.appendChild(button);
+    }
     const iter = iterator2(flatten);
     const handlers = {
         [ui.title]: () => {
@@ -82,6 +88,9 @@ function createPage(document, width, flatten) {
             paragraph.innerText = iter.next().value;
             paragraph.style.paddingLeft = space + 'px';
             paragraph.style.paddingRight = space + 'px';
+            paragraph.style.margin = '0px';
+            paragraph.style.fontSize = '12px';
+            paragraph.style.color = '#000000d9';
             return paragraph;
         },
         [ui.images]: ([_, vec]) => {
@@ -132,24 +141,35 @@ function createPage(document, width, flatten) {
 
 function createLeftNavigateApp(document, width, height, sidebarWidth, flatten) {
 
+    const isNarrow = width < 1000;
+
     const container = document.createElement('div');
     container.style.width = width + "px";
     container.style.height = height + "px";
     container.style.display = 'flex';
 
     const sidebar = document.createElement('div');
-    container.appendChild(sidebar);
+    if (!isNarrow) {
+        container.appendChild(sidebar);
+    }
     sidebar.style.width = sidebarWidth + "px";
 
+    const pageWidth = isNarrow ? width : (width - sidebarWidth);
     const page = document.createElement('div');
     container.appendChild(page);
-    page.style.width = (width - sidebarWidth) + "px";
+    page.style.width = pageWidth + "px";
 
     let pageId = 0;
     let pages = [];
-
     function setPage() {
-        page.replaceChildren(createPage(document, width - sidebarWidth, pages[pageId]));
+        if (pageId === -1) {
+            page.replaceChildren(sidebar);
+        } else {
+            page.replaceChildren(createPage(document, pageWidth, isNarrow, () => {
+                pageId = -1;
+                setPage();
+            }, pages[pageId]));
+        }
     }
 
     const iter = iterator2(flatten);
@@ -157,6 +177,7 @@ function createLeftNavigateApp(document, width, height, sidebarWidth, flatten) {
         [ui.title]: () => {
             const title = document.createElement('h2');
             title.innerText = iter.next().value;
+            title.style.color = '#000000d9';
             return title;
         },
         [ui.items]: ([_, n]) => {
@@ -165,11 +186,13 @@ function createLeftNavigateApp(document, width, height, sidebarWidth, flatten) {
                 const li = document.createElement('li');
                 ul.appendChild(li);
                 const [text, _page] = iter.next().value;
-                const currentPageId = pageId++;
+                const _pageId = pageId++;
                 pages.push(_page);
                 li.innerText = text;
+                li.style.color = '#000000d9';
+                li.style.fontSize = '12px';
                 li.addEventListener('click', () => {
-                    pageId = currentPageId;
+                    pageId = _pageId;
                     setPage();
                 })
             }
