@@ -1,7 +1,9 @@
 /**
  * MIT License
  *
- * Copyright (c) 2025 guanqun-design https://guanqun-design.github.io
+ * Copyright (c) 2025-2026 guanqun-design
+ * https://guanqun-design.github.io
+ * https://zhangguanqun.cn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +24,7 @@
  * SOFTWARE.
  */
 
-function solveLinearEquation(A, y) {
+export function solveLinearEquation(A, y) {
 
     const n = A.length;
 

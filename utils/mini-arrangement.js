@@ -1,7 +1,9 @@
 /**
  * MIT License
  *
- * Copyright (c) 2025 guanqun-design https://guanqun-design.github.io
+ * Copyright (c) 2025-2026 guanqun-design
+ * https://guanqun-design.github.io
+ * https://zhangguanqun.cn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,11 +24,16 @@
  * SOFTWARE.
  */
 
-const ArrangementSpaceAround = "spaceAround";
-const ArrangementSpaceBetween = "spaceBetween";
-const ArrangementValidTypes = [ArrangementSpaceAround, ArrangementSpaceBetween];
+import {solveLinearEquation} from './mini-math.js'
 
-function arrangement2D(container, elements, arrangementType, space) {
+export const [ArrangementSpaceAround, ArrangementSpaceBetween, ArrangementSpaceEvenly] = [0, 1, 2];
+
+const ArrangementValidTypes = [ArrangementSpaceAround, ArrangementSpaceBetween, ArrangementSpaceEvenly];
+
+// evenly: ----[]----[]----[]----
+// around: --[]----[]----[]--
+// between: []----[]----[]
+export function arrangement2D(width, elements, arrangementType, space) {
 
     // 校验arrangementType
     if (!ArrangementValidTypes.includes(arrangementType)) {
@@ -36,34 +43,34 @@ function arrangement2D(container, elements, arrangementType, space) {
 
     // 计算每个元素的宽高比总和
     const ratios = elements.map(group =>
-        group.stream.reduce((sum, item) => sum + item.width / item.height, 0)
+        group.reduce((sum, item) => sum + item.height / item.width, 0)
     );
 
     // 计算可用空间
-    const availableSpace = arrangementType === ArrangementSpaceAround
-        ? container.height - (elements[0].length + 1) * space
-        : container.height - (elements[0].length - 1) * space;
+    const availableSpace = {
+        [ArrangementSpaceEvenly]: width - (elements.length + 1) * space,
+        [ArrangementSpaceAround]: width - elements.length * space,
+        [ArrangementSpaceBetween]: width - (elements.length - 1) * space
+    }[[arrangementType]];
 
     // 构建线性方程组
     const matrix = elements.map((_, k) => {
-        const row = new Array(elements.length).fill(0);
         if (k === 0) {
-            row.fill(1);
+            return new Array(elements.length).fill(1);
         } else {
-            row[0] = -ratios[0];
-            row[k] = ratios[k];
+            const row = new Array(elements.length).fill(0);
+            row[0] = ratios[0];
+            row[k] = -ratios[k];
+            return row;
         }
-        return row;
     });
 
     // 构建结果向量
     const results = elements.map((_, k) => {
         if (k === 0) {
-            return arrangementType === ArrangementSpaceAround
-                ? container.width - (elements.length + 1) * space
-                : container.width - (elements.length - 1) * space;
+            return availableSpace;
         }
-        return 0;
+        return (elements[0].length - elements[k].length) * space;
     });
 
     const sizes = solveLinearEquation(matrix, results);
@@ -71,8 +78,9 @@ function arrangement2D(container, elements, arrangementType, space) {
     // 应用计算结果
     elements.forEach((group, i) => {
         group.forEach(item => {
+            const ratio = item.height / item.width;
             item.width = sizes[i];
-            item.height = sizes[i] * item.height / item.width;
+            item.height = sizes[i] * ratio;
         });
     });
 }
