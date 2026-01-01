@@ -70,6 +70,13 @@ function createPage(document, width, flatten) {
             title.style.paddingRight = space + 'px';
             return title;
         },
+        [ui.subtitle]: () => {
+            const title = document.createElement('h3');
+            title.innerText = iter.next().value;
+            title.style.paddingLeft = space + 'px';
+            title.style.paddingRight = space + 'px';
+            return title;
+        },
         [ui.paragraph]: () => {
             const paragraph = document.createElement('p');
             paragraph.innerText = iter.next().value;
@@ -95,13 +102,18 @@ function createPage(document, width, flatten) {
                 column.style.width = `${elements[i][0].width}px`;
                 column.style.height = `${height}px`;
                 elements[i].forEach(element=>{
-                    const image = document.createElement('img');
-                    column.appendChild(image);
-                    image.src = element.url;
+                    let image;
+                    if (element.url != null) {
+                        image = document.createElement('img');
+                        image.src = element.url;
+                        image.style.borderRadius = '8px';
+                        image.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                    } else {
+                        image = document.createElement('div');
+                    }
                     image.style.width = `${element.width}px`;
                     image.style.height = `${element.height}px`;
-                    image.style.borderRadius = '8px';
-                    image.style.boxShadow = '0 4px 8px rgba(0,0,0,0.1)';
+                    column.appendChild(image);
                 });
             }
             return row;
@@ -133,6 +145,13 @@ function createLeftNavigateApp(document, width, height, sidebarWidth, flatten) {
     container.appendChild(page);
     page.style.width = (width - sidebarWidth) + "px";
 
+    let pageId = 0;
+    let pages = [];
+
+    function setPage() {
+        page.replaceChildren(createPage(document, width - sidebarWidth, pages[pageId]));
+    }
+
     const iter = iterator2(flatten);
     const handlers = {
         [ui.title]: () => {
@@ -146,9 +165,12 @@ function createLeftNavigateApp(document, width, height, sidebarWidth, flatten) {
                 const li = document.createElement('li');
                 ul.appendChild(li);
                 const [text, _page] = iter.next().value;
+                const currentPageId = pageId++;
+                pages.push(_page);
                 li.innerText = text;
                 li.addEventListener('click', () => {
-                    page.replaceChildren(createPage(document, width - sidebarWidth, _page));
+                    pageId = currentPageId;
+                    setPage();
                 })
             }
             return ul;
@@ -162,6 +184,9 @@ function createLeftNavigateApp(document, width, height, sidebarWidth, flatten) {
         }
         sidebar.appendChild(handlers[[meta.value[0]]](meta.value));
     }
+
+    pageId = 0;
+    setPage();
 
     return container;
 }
